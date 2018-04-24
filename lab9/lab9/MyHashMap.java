@@ -7,18 +7,18 @@ import java.util.Set;
  *  A hash table-backed Map implementation. Provides amortized constant time
  *  access to elements via get(), remove(), and put() in the best case.
  *
- *  @author Your name here
+ *  @author sjwang
  */
 public class MyHashMap<K, V> implements Map61B<K, V> {
 
-    private static final int DEFAULT_SIZE = 16;
+    private static final int DEFAULT_SIZE = 4;
     private static final double MAX_LF = 0.75;
 
     private ArrayMap<K, V>[] buckets;
     private int size;
 
-    private int loadFactor() {
-        return size / buckets.length;
+    private double loadFactor() {
+        return (double) size / buckets.length;
     }
 
     public MyHashMap() {
@@ -43,29 +43,49 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         if (key == null) {
             return 0;
         }
-
         int numBuckets = buckets.length;
         return Math.floorMod(key.hashCode(), numBuckets);
     }
 
-    /* Returns the value to which the specified key is mapped, or null if this
-     * map contains no mapping for the key.
+    /** Returns the value to which the specified key is mapped, or null if this
+     *  map contains no mapping for the key.
      */
     @Override
     public V get(K key) {
-        throw new UnsupportedOperationException();
+        if(key == null || buckets[hash(key)] == null) return null;
+        return buckets[hash(key)].get(key);
     }
 
-    /* Associates the specified value with the specified key in this map. */
+    /** Associates the specified value with the specified key in this map.
+     *  Doubling the number of buckets anytime the load factor exceeds MAX_LF.
+     */
     @Override
     public void put(K key, V value) {
-        throw new UnsupportedOperationException();
+        if(buckets[hash(key)] != null && buckets[hash(key)].containsKey(key)) {
+            return;
+        }
+        double v = this.loadFactor();
+        if(v > MAX_LF){
+            int len = buckets.length * 2;
+            ArrayMap<K, V>[] b = buckets;
+            ArrayMap<K, V>[] temp = new ArrayMap[len];
+            buckets = temp;
+            this.clear();
+            for(int i = 0; i < b.length; i++){
+                for(K k : b[i].keySet()){
+                    buckets[hash(k)].put(k, b[i].get(k));
+                    size ++;
+                }
+            }
+        }
+        buckets[hash(key)].put(key, value);
+        size ++;
     }
 
-    /* Returns the number of key-value mappings in this map. */
+    /** Returns the number of key-value mappings in this map. */
     @Override
     public int size() {
-        throw new UnsupportedOperationException();
+        return  size;
     }
 
     //////////////// EVERYTHING BELOW THIS LINE IS OPTIONAL ////////////////
@@ -95,5 +115,16 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     @Override
     public Iterator<K> iterator() {
         throw new UnsupportedOperationException();
+    }
+
+    public static void main(String args[]){
+        MyHashMap<String, Integer> my = new MyHashMap<>();
+        my.put("apple", 10);
+        my.put("banana", 15);
+        my.put("door", 5);
+        my.put("dog", 6);
+        my.put("sky", 6);
+        System.out.println(my.size());
+        System.out.println(my.get("dog"));
     }
 }
