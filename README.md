@@ -1,2 +1,2 @@
 # cs61b
-## Berkely Data Structure Class
+## Berkeley Data Structure Class
